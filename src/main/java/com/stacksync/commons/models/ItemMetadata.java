@@ -10,12 +10,12 @@ public class ItemMetadata implements Serializable {
 
 	private static final long serialVersionUID = -2494445120408291949L;
 
-	private Long id;
-	private Long tempId;
+	private UUID id;
+	private UUID tempId;
 	private Long version;
 	private UUID deviceId;
 	private UUID workspaceId;
-	private Long parentId;
+	private UUID parentId;
 	private Long parentVersion;
 
 	private String status;
@@ -36,8 +36,8 @@ public class ItemMetadata implements Serializable {
 		this.chunks = new ArrayList<String>();
 	}
 
-	public ItemMetadata(Long id, Long version, UUID deviceId, Long parentId,
-			Long parentVersion, String status, Date modifiedAt, Long checksum,
+	public ItemMetadata(UUID id, Long version, UUID deviceId, UUID parentId,
+			long parentVersion, String status, Date modifiedAt, Long checksum,
 			Long size, boolean isFolder, String filename, String mimetype,
 			List<String> chunks) {
 
@@ -62,19 +62,19 @@ public class ItemMetadata implements Serializable {
 		}
 	}
 
-	public Long getId() {
+	public UUID getId() {
 		return id;
 	}
 
-	public void setId(Long id) {
+	public void setId(UUID id) {
 		this.id = id;
 	}
 
-	public Long getTempId() {
+	public UUID getTempId() {
 		return tempId;
 	}
 
-	public void setTempId(Long tempId) {
+	public void setTempId(UUID tempId) {
 		this.tempId = tempId;
 	}
 
@@ -102,11 +102,11 @@ public class ItemMetadata implements Serializable {
 		this.workspaceId = workspaceId;
 	}
 
-	public Long getParentId() {
+	public UUID getParentId() {
 		return parentId;
 	}
 
-	public void setParentId(Long parentId) {
+	public void setParentId(UUID parentId) {
 		this.parentId = parentId;
 	}
 

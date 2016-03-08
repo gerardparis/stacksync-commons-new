@@ -9,9 +9,9 @@ public class UpdateWorkspaceNotification extends Notification implements Seriali
 
 	protected UUID workspaceId;
 	protected String folderName;
-	protected Long parentItemId;
+	protected UUID parentItemId;
 	
-	public UpdateWorkspaceNotification(UUID workspaceId, String folderName, Long parentItemId) {
+	public UpdateWorkspaceNotification(UUID workspaceId, String folderName, UUID parentItemId) {
 		super();
 		this.workspaceId = workspaceId;
 		this.folderName = folderName;
@@ -34,11 +34,11 @@ public class UpdateWorkspaceNotification extends Notification implements Seriali
 		this.folderName = folderName;
 	}
 
-	public Long getParentItemId() {
+	public UUID getParentItemId() {
 		return parentItemId;
 	}
 
-	public void setParentItemId(Long parentItemId) {
+	public void setParentItemId(UUID parentItemId) {
 		this.parentItemId = parentItemId;
 	}
 	

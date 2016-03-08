@@ -2,142 +2,184 @@ package com.stacksync.commons.models;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
+import java.sql.Timestamp;
 import java.util.Date;
 import java.util.UUID;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.OneToOne;
+import javax.persistence.PrePersist;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Type;
 
+@Entity
+@Table(name = "device")
 public class Device implements Serializable {
 
-	private static final long serialVersionUID = -2932481953197148130L;
-	
-	private UUID id;
-	private String name;
-	private User user;
-	private String os;
-	private Date createdAt;
-	private Date lastAccessAt;
-	private String lastIp;
-	private String appVersion;
+    private static final long serialVersionUID = -2932481953197148130L;
 
-	public Device() {
-		this.id = null;
-	}
-	
-	public Device(UUID id) {
-		this.id = id;
-	}
+    @Id
+    @Type(type = "uuid-char")
+    @GeneratedValue(generator = "uuid")
+    @GenericGenerator(name = "uuid", strategy = "uuid2")
+    @Column(name = "id", unique = true, nullable = false)
+    private UUID id;
 
-	public Device(UUID id, String name, User user) {
-		this.id = id;
-		this.name = name;
-		this.user = user;
-	}
+    @Type(type = "string")
+    @Column(name = "name", nullable = false, length = 100)
+    private String name;
 
-	public Device(String name, User user, String os, Date createdAt,
-			Date lastAccessAt, String lastIp, String appVersion) {
-		this.name = name;
-		this.user = user;
-		this.os = os;
-		this.createdAt = createdAt;
-		this.lastAccessAt = lastAccessAt;
-		this.lastIp = lastIp;
-		this.appVersion = appVersion;
-	}
+    @OneToOne(cascade = CascadeType.ALL)
+    private User user;
 
-	public String getOs() {
-		return os;
-	}
+    @Type(type = "string")
+    @Column(name = "os", nullable = false, length = 100)
+    private String os;
 
-	public void setOs(String os) {
-		this.os = os;
-	}
+    @Type(type = "date")
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "created_at", nullable = false)
+    private Date createdAt;
 
-	public Date getCreatedAt() {
-		return createdAt;
-	}
+    @Type(type = "date")
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "last_access_at", nullable = false)
+    private Date lastAccessAt;
 
-	public void setCreatedAt(Date createdAt) {
-		this.createdAt = createdAt;
-	}
+    @Type(type = "string")
+    @Column(name = "last_ip", nullable = false, length = 100)
+    private String lastIp;
 
-	public Date getLastAccessAt() {
-		return lastAccessAt;
-	}
+    @Type(type = "string")
+    @Column(name = "app_version", nullable = false, length = 45)
+    private String appVersion;
 
-	public void setLastAccessAt(Date lastAccessAt) {
-		this.lastAccessAt = lastAccessAt;
-	}
+    public Device() {
+        this(null);
+    }
 
-	public String getLastIp() {
-		return lastIp;
-	}
+    public Device(UUID id) {
+        this(id, null, null);
+    }
 
-	public void setLastIp(String lastIp) {
-		this.lastIp = lastIp;
-	}
+    public Device(UUID id, String name, User user) {
+        this(name, user, null, null, null, null, null);
+        this.id = id;
+    }
 
-	public String getAppVersion() {
-		return appVersion;
-	}
+    public Device(String name, User user, String os, Date createdAt,
+            Date lastAccessAt, String lastIp, String appVersion) {
+        this.name = name;
+        this.user = user;
+        this.os = os;
+        this.createdAt = createdAt;
+        this.lastAccessAt = lastAccessAt;
+        this.lastIp = lastIp;
+        this.appVersion = appVersion;
+        this.createdAt = (createdAt == null) ? new Timestamp(System.currentTimeMillis()) : createdAt;
+    }
 
-	public void setAppVersion(String appVersion) {
-		this.appVersion = appVersion;
-	}
+    public String getOs() {
+        return os;
+    }
 
-	public UUID getId() {
-		return id;
-	}
+    public void setOs(String os) {
+        this.os = os;
+    }
 
-	public void setId(UUID id) {
-		this.id = id;
-	}
+    public Date getCreatedAt() {
+        return createdAt;
+    }
 
-	public String getName() {
-		return name;
-	}
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    public Date getLastAccessAt() {
+        return lastAccessAt;
+    }
 
-	public User getUser() {
-		return user;
-	}
+    public void setLastAccessAt(Date lastAccessAt) {
+        this.lastAccessAt = lastAccessAt;
+    }
 
-	public void setUser(User user) {
-		this.user = user;
-	}
+    public String getLastIp() {
+        return lastIp;
+    }
 
-	public boolean isValid() {
-		// TODO Auto-generated method stub
-		return true;
-	}
+    public void setLastIp(String lastIp) {
+        this.lastIp = lastIp;
+    }
 
-	@Override
-	public String toString() {
-		StringBuilder result = new StringBuilder();
+    public String getAppVersion() {
+        return appVersion;
+    }
 
-		result.append(this.getClass().getName());
-		result.append(" {");
+    public void setAppVersion(String appVersion) {
+        this.appVersion = appVersion;
+    }
 
-		// determine fields declared in this class only (no fields of
-		// superclass)
-		Field[] fields = this.getClass().getDeclaredFields();
+    public UUID getId() {
+        return id;
+    }
 
-		// print field names paired with their values
-		for (Field field : fields) {
-			result.append("  ");
-			try {
-				result.append(field.getName());
-				result.append(": ");
-				// requires access to private field:
-				result.append(field.get(this));
-			} catch (IllegalAccessException ex) {
-				System.out.println(ex);
-			}
-		}
-		result.append("}");
+    public void setId(UUID id) {
+        this.id = id;
+    }
 
-		return result.toString();
-	}
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public boolean isValid() {
+        // TODO Auto-generated method stub
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder result = new StringBuilder();
+
+        result.append(this.getClass().getName());
+        result.append(" {");
+
+        // determine fields declared in this class only (no fields of
+        // superclass)
+        Field[] fields = this.getClass().getDeclaredFields();
+
+        // print field names paired with their values
+        for (Field field : fields) {
+            result.append("  ");
+            try {
+                result.append(field.getName());
+                result.append(": ");
+                // requires access to private field:
+                result.append(field.get(this));
+            } catch (IllegalAccessException ex) {
+                System.out.println(ex);
+            }
+        }
+        result.append("}");
+
+        return result.toString();
+    }
 
 }

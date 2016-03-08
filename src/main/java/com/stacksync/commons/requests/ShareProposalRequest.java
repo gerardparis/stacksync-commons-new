@@ -9,11 +9,11 @@ public class ShareProposalRequest extends Request implements Serializable {
 	protected static final long serialVersionUID = -5985754297818659212L;
 
 	protected List<String> emails;
-	protected Long itemId;
+	protected UUID itemId;
 	protected boolean isEncrypted;
 
 	public ShareProposalRequest(UUID userId, List<String> emails,
-			Long itemId, boolean isEncrypted) {
+			UUID itemId, boolean isEncrypted) {
 		super(userId);
 		
 		this.emails = emails;
@@ -29,11 +29,11 @@ public class ShareProposalRequest extends Request implements Serializable {
 		this.emails = emails;
 	}
 
-	public Long getItemId() {
+	public UUID getItemId() {
 		return itemId;
 	}
 
-	public void setItemId(Long itemId) {
+	public void setItemId(UUID itemId) {
 		this.itemId = itemId;
 	}
 

@@ -4,180 +4,223 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinTable;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Type;
 
+@Entity
+@Table(name = "item")
 public class Item implements Serializable {
 
-	private static final long serialVersionUID = 1482457936400001556L;
-	
-	private Long id;
-	private Workspace workspace;
-	private Long latestVersion;
-	private Item parent;
-	private String filename;
-	private String mimetype;
-	private Boolean isFolder;
-	private Long clientParentFileVersion;
-	private List<ItemVersion> versions;
+    private static final long serialVersionUID = 1482457936400001556L;
 
-	public Item() {
-		this(null);
-	}
+    @Id
+    @Type(type = "uuid-char")
+    @GeneratedValue(generator = "uuid")
+    @GenericGenerator(name = "uuid", strategy = "uuid2")
+    private UUID id;
 
-	public Item(Long id) {
-		this(id, null, null, null, null, null, null, null, null);
-	}
+    @OneToOne(cascade = CascadeType.ALL)
+    private Workspace workspace;
 
-	public Item(Long id, Workspace workspace, Long latestVersion, Item parent, Long clientFileId,
-			String filename, String mimetype, Boolean isFolder,
-			Long clientParentFileVersion) {
+    @Type(type = "long")
+    @Column(name = "latest_version", nullable = false)
+    private Long latestVersion;
 
-		this.id = id;
-		this.workspace = workspace;
-		this.latestVersion = latestVersion;
-		this.parent = parent;
-		this.filename = filename;
-		this.mimetype = mimetype;
-		this.isFolder = isFolder;
-		this.clientParentFileVersion = clientParentFileVersion;
-		this.versions = new ArrayList<ItemVersion>();
-	}
+    @OneToOne(cascade = CascadeType.ALL)
+    private Item parent;
 
-	public Long getId() {
-		return id;
-	}
+    @Type(type = "string")
+    @Column(name = "filename", nullable = false, length = 100)
+    private String filename;
 
-	public void setId(Long id) {
-		this.id = id;
-	}
+    @Type(type = "string")
+    @Column(name = "mimetype", nullable = false, length = 150)
+    private String mimetype;
 
-	public Workspace getWorkspace() {
-		return workspace;
-	}
+    @Type(type = "true_false")
+    @Column(name = "is_folder", nullable = false)
+    private Boolean isFolder;
 
-	public void setWorkspace(Workspace workspace) {
-		this.workspace = workspace;
-	}
+    @Type(type = "long")
+    @Column(name = "client_parent_file_version", nullable = true)
+    private Long clientParentFileVersion;
 
-	public Long getLatestVersion() {
-		return latestVersion;
-	}
+    @OneToMany(mappedBy="item", cascade = CascadeType.ALL)
+    private List<ItemVersion> versions;
 
-	public void setLatestVersion(Long latestVersion) {
-		this.latestVersion = latestVersion;
-	}
+    public Item() {
+        this(null);
+    }
 
-	public Item getParent() {
-		return parent;
-	}
-	
-	public Long getParentId(){
-		if (parent == null) return null;
-		else return parent.getId();
-	}
+    public Item(UUID id) {
+        this(id, null, null, null, null, null, null, null, null);
+    }
 
-	public void setParent(Item parent) {
-		this.parent = parent;
-	}
+    public Item(UUID id, Workspace workspace, Long latestVersion, Item parent, Long clientFileId,
+            String filename, String mimetype, Boolean isFolder,
+            Long clientParentFileVersion) {
 
-	public String getFilename() {
-		return filename;
-	}
+        this.id = id;
+        this.workspace = workspace;
+        this.latestVersion = latestVersion;
+        this.parent = parent;
+        this.filename = filename;
+        this.mimetype = mimetype;
+        this.isFolder = isFolder;
+        this.clientParentFileVersion = clientParentFileVersion;
+        this.versions = new ArrayList<ItemVersion>();
+    }
 
-	public void setFilename(String filename) {
-		this.filename = filename;
-	}
+    public UUID getId() {
+        return id;
+    }
 
-	public String getMimetype() {
-		return mimetype;
-	}
+    public UUID setId(UUID id) {
+        return this.id = id;
+    }
 
-	public void setMimetype(String mimetype) {
-		this.mimetype = mimetype;
-	}
+    public Workspace getWorkspace() {
+        return workspace;
+    }
 
-	public Boolean isFolder() {
-		return isFolder;
-	}
+    public void setWorkspace(Workspace workspace) {
+        this.workspace = workspace;
+    }
 
-	public void setIsFolder(Boolean isFolder) {
-		this.isFolder = isFolder;
-	}
+    public Long getLatestVersion() {
+        return latestVersion;
+    }
 
-	public Long getClientParentFileVersion() {
-		return clientParentFileVersion;
-	}
+    public void setLatestVersion(Long latestVersion) {
+        this.latestVersion = latestVersion;
+    }
 
-	public void setClientParentFileVersion(Long clientParentFileVersion) {
-		this.clientParentFileVersion = clientParentFileVersion;
-	}
+    public Item getParent() {
+        return parent;
+    }
 
-	public List<ItemVersion> getVersions() {
-		return versions;
-	}
+    public UUID getParentId() {
+        if (parent == null) {
+            return null;
+        } else {
+            return parent.getId();
+        }
+    }
 
-	public void setVersions(List<ItemVersion> versions) {
-		this.versions = versions;
-	}
+    public void setParent(Item parent) {
+        this.parent = parent;
+    }
 
-	public void addVersion(ItemVersion objectVersion) {
-		this.versions.add(objectVersion);
-	}
+    public String getFilename() {
+        return filename;
+    }
 
-	public void removeVersion(ItemVersion objectVersion) {
-		this.versions.remove(objectVersion);
-	}
+    public void setFilename(String filename) {
+        this.filename = filename;
+    }
 
-	public boolean hasParent() {
+    public String getMimetype() {
+        return mimetype;
+    }
 
-		boolean has = true;
-		if (this.parent == null) {
-			has = false;
-		}
-		return has;
-	}
+    public void setMimetype(String mimetype) {
+        this.mimetype = mimetype;
+    }
 
-	/**
-	 * Returns True if the {@link Item} is valid. False otherwise.
-	 * 
-	 * @return Boolean indicating whether the {@link Item} is valid or not.
-	 */
-	public boolean isValid() {
+    public Boolean isFolder() {
+        return isFolder;
+    }
 
-		if (workspace == null || latestVersion == null 
-				|| filename == null || mimetype == null || isFolder == null || versions == null) {
-			return false;
-		}
+    public void setIsFolder(Boolean isFolder) {
+        this.isFolder = isFolder;
+    }
 
-		return true;
-	}
+    public Long getClientParentFileVersion() {
+        return clientParentFileVersion;
+    }
 
-	@Override
-	public String toString() {
-		String format = "Item[id=%s, parentId=%s, workspaceId=%s, latestVersion=%s, "
-				+ "Filename=%s, "
-				+ "mimetype=%s, isFolder=%s, "
-				+ "clientParentFileVersion=%s, versions=%s]";
+    public void setClientParentFileVersion(Long clientParentFileVersion) {
+        this.clientParentFileVersion = clientParentFileVersion;
+    }
 
-		Long parentId = null;
-		if (parent != null) {
-			parentId = parent.getId();
-		}
+    public List<ItemVersion> getVersions() {
+        return versions;
+    }
 
-		UUID workspaceId = null;
-		if (workspace != null) {
-			workspaceId = workspace.getId();
-		}
+    public void setVersions(List<ItemVersion> versions) {
+        this.versions = versions;
+    }
 
-		Integer versionsSize = null;
-		if (versions != null) {
-			versionsSize = versions.size();
-		}
+    public void addVersion(ItemVersion objectVersion) {
+        this.versions.add(objectVersion);
+    }
 
-		String result = String.format(format, id, parentId, workspaceId, latestVersion,
-				filename, mimetype, isFolder,
-				clientParentFileVersion, versionsSize);
+    public void removeVersion(ItemVersion objectVersion) {
+        this.versions.remove(objectVersion);
+    }
 
-		return result;
-	}
+    public boolean hasParent() {
+
+        boolean has = true;
+        if (this.parent == null) {
+            has = false;
+        }
+        return has;
+    }
+
+    /**
+     * Returns True if the {@link Item} is valid. False otherwise.
+     *
+     * @return Boolean indicating whether the {@link Item} is valid or not.
+     */
+    public boolean isValid() {
+
+        if (workspace == null || latestVersion == null
+                || filename == null || mimetype == null || isFolder == null || versions == null) {
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        String format = "Item[id=%s, parentId=%s, workspaceId=%s, latestVersion=%s, "
+                + "Filename=%s, "
+                + "mimetype=%s, isFolder=%s, "
+                + "clientParentFileVersion=%s, versions=%s]";
+
+        UUID parentId = null;
+        if (parent != null) {
+            parentId = parent.getId();
+        }
+
+        UUID workspaceId = null;
+        if (workspace != null) {
+            workspaceId = workspace.getId();
+        }
+
+        Integer versionsSize = null;
+        if (versions != null) {
+            versionsSize = versions.size();
+        }
+
+        String result = String.format(format, id, parentId, workspaceId, latestVersion,
+                filename, mimetype, isFolder,
+                clientParentFileVersion, versionsSize);
+
+        return result;
+    }
 
 }

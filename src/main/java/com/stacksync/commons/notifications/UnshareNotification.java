@@ -12,14 +12,14 @@ public class UnshareNotification extends Notification implements Serializable {
 	
 	protected UUID workspaceId;
 	protected String folderName;
-	protected Long itemId;
+	protected UUID itemId;
 	protected UUID ownerId;
 	protected String ownerName;
 	protected String swiftContainer;
 	protected String swiftURL;
 	protected boolean isEncrypted;
 	
-	public UnshareNotification(UUID workspaceId, String folderName, Long itemId, UUID ownerId,
+	public UnshareNotification(UUID workspaceId, String folderName, UUID itemId, UUID ownerId,
 			String ownerName, String swiftContainer, String swiftUrl, boolean isEncrypted) {
 		super();
 		this.workspaceId = workspaceId;
@@ -48,11 +48,11 @@ public class UnshareNotification extends Notification implements Serializable {
 		this.folderName = folderName;
 	}
 
-	public Long getItemId() {
+	public UUID getItemId() {
 		return itemId;
 	}
 
-	public void setItemId(Long itemId) {
+	public void setItemId(UUID itemId) {
 		this.itemId = itemId;
 	}
 

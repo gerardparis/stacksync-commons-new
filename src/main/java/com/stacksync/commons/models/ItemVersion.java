@@ -4,158 +4,215 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
-import com.stacksync.commons.models.ItemMetadata;
+import java.io.Serializable;
+import javax.persistence.AttributeOverride;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.EmbeddedId;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.MapsId;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Type;
 
-public class ItemVersion {
+@Entity
+@Table(name = "item_version")
+public class ItemVersion implements Serializable {
 
-	private Long id;
-	private Item item;
-	private Device device;
-	private Long version;
-	private Date committedAt;
-	private Date modifiedAt;
-	private Long checksum;
-	private String status;
-	private Long size;
-	private List<Chunk> chunks;
+    /*@Id
+    @Type(type = "uuid-char")
+    @GeneratedValue(generator = "uuid")
+    @GenericGenerator(name = "uuid", strategy = "uuid2")
+    private UUID id;
+    */
+    
+    
+    @EmbeddedId 
+    //Any overrides to simple Id properties should be handled with an attribute override
+    @AttributeOverride(name = "version", column = @Column(name = "version"))
+    ItemVersionKey id = new ItemVersionKey();
+    
+    @OneToOne(cascade = CascadeType.ALL)
+    @MapsId("itemId")
+    private Item item;
 
-	public ItemVersion() {
-		this.id = null;
-	}
+    @OneToOne(cascade = CascadeType.ALL)
+    private Device device;
 
-	public ItemVersion(Long id, Item item, Device device, Long version, Date committedAt,
-			Date modifiedAt, Long checksum, String status, Long size) {
-		this.id = id;
-		this.item = item;
-		this.device = device;
-		this.version = version;
-		this.committedAt = committedAt;
-		this.modifiedAt = modifiedAt;
-		this.checksum = checksum;
-		this.status = status;
-		this.size = size;
-	}
-	
-	public ItemVersion(ItemMetadata metadata) {
-		this.id = metadata.getVersion();
-		this.item = new Item(metadata.getId());
-		this.device = new Device(metadata.getDeviceId());
-		this.version = metadata.getVersion();
-		this.modifiedAt = metadata.getModifiedAt();
-		this.checksum = metadata.getChecksum();
-		this.status = metadata.getStatus();
-		this.size = metadata.getSize();
-	}
+    @Type(type = "long")
+    @Column(name = "version", nullable = false, insertable = false, updatable = false)
+    private Long version;
 
-	public Long getId() {
-		return id;
-	}
+    @Type(type = "date")
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "commited_at", nullable = false)
+    private Date committedAt;
 
-	public void setId(Long id) {
-		this.id = id;
-	}
+    @Type(type = "date")
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "modified_at", nullable = false)
+    private Date modifiedAt;
 
-	public Item getItem() {
-		return item;
-	}
+    @Type(type = "long")
+    @Column(name = "checksum", nullable = false)
+    private Long checksum;
 
-	public void setItem(Item item) {
-		this.item = item;
-	}
+    @Type(type = "string")
+    @Column(name = "status", nullable = false, length = 10)
+    private String status;
 
-	public Device getDevice() {
-		return device;
-	}
+    @Type(type = "long")
+    @Column(name = "size", nullable = false)
+    private Long size;
 
-	public void setDevice(Device device) {
-		this.device = device;
-	}
+    @OneToMany(mappedBy="itemVersion", cascade = CascadeType.ALL)
+    private List<Chunk> chunks;
 
-	public Long getVersion() {
-		return version;
-	}
+    public ItemVersion() {
+        this.id = null;
+    }
 
-	public void setVersion(Long version) {
-		this.version = version;
-	}
+    public ItemVersion(Item item, Device device, Long version, Date committedAt,
+            Date modifiedAt, Long checksum, String status, Long size) {
+        this.item = item;
+        this.device = device;
+        this.version = version;
+        this.committedAt = committedAt;
+        this.modifiedAt = modifiedAt;
+        this.checksum = checksum;
+        this.status = status;
+        this.size = size;
+    }
 
-	public Date getModifiedAt() {
-		return modifiedAt;
-	}
+    public ItemVersion(ItemMetadata metadata) {
+        //TODO Check this assignation
+        //this.id = metadata.getVersion();
+        this.item = new Item(metadata.getId());
+        this.device = new Device(metadata.getDeviceId());
+        this.version = metadata.getVersion();
+        this.modifiedAt = metadata.getModifiedAt();
+        this.checksum = metadata.getChecksum();
+        this.status = metadata.getStatus();
+        this.size = metadata.getSize();
+    }
 
-	public void setModifiedAt(Date modifiedAt) {
-		this.modifiedAt = modifiedAt;
-	}
+    public ItemVersionKey getId() {
+        return id;
+    }
 
-	public Long getChecksum() {
-		return checksum;
-	}
+    public void setId(ItemVersionKey id) {
+        this.id = id;
+    }
 
-	public void setChecksum(Long checksum) {
-		this.checksum = checksum;
-	}
+    public Item getItem() {
+        return item;
+    }
 
-	public Date getCommittedAt() {
-		return committedAt;
-	}
+    public void setItem(Item item) {
+        this.item = item;
+    }
 
-	public void setCommittedAt(Date committedAt) {
-		this.committedAt = committedAt;
-	}
+    public Device getDevice() {
+        return device;
+    }
 
-	public String getStatus() {
-		return status;
-	}
+    public void setDevice(Device device) {
+        this.device = device;
+    }
 
-	public void setStatus(String status) {
-		this.status = status;
-	}
+    public Long getVersion() {
+        return version;
+    }
 
-	public Long getSize() {
-		return size;
-	}
+    public void setVersion(Long version) {
+        this.version = version;
+    }
 
-	public void setSize(Long size) {
-		this.size = size;
-	}
+    public Date getModifiedAt() {
+        return modifiedAt;
+    }
 
-	public List<Chunk> getChunks() {
-		return chunks;
-	}
+    public void setModifiedAt(Date modifiedAt) {
+        this.modifiedAt = modifiedAt;
+    }
 
-	public void setChunks(List<Chunk> chunks) {
-		this.chunks = chunks;
-	}
+    public Long getChecksum() {
+        return checksum;
+    }
 
-	public boolean isValid() {
-		// TODO Auto-generated method stub
-		return true;
-	}
+    public void setChecksum(Long checksum) {
+        this.checksum = checksum;
+    }
 
-	@Override
-	public String toString() {
-		String format = "ItemVersion[id=%s, itemId=%s, version=%s, chunks=%s, deviceId=%s, modifiedAt=%s, "
-				+ "committedAt=%s, checksum=%s, status=%s, "
-				+ "size=%s]";
+    public Date getCommittedAt() {
+        return committedAt;
+    }
 
-		Long itemId = null;
-		if (item != null) {
-			itemId = item.getId();
-		}
+    public void setCommittedAt(Date committedAt) {
+        this.committedAt = committedAt;
+    }
 
-		Integer chunksSize = null;
-		if (chunks != null) {
-			chunksSize = chunks.size();
-		}
+    public String getStatus() {
+        return status;
+    }
 
-		UUID deviceId = null;
-		if (device != null) {
-			deviceId = device.getId();
-		}
+    public void setStatus(String status) {
+        this.status = status;
+    }
 
-		String result = String.format(format, id, itemId, version, chunksSize, deviceId, modifiedAt,
-				committedAt, checksum, status, size);
+    public Long getSize() {
+        return size;
+    }
 
-		return result;
-	}
+    public void setSize(Long size) {
+        this.size = size;
+    }
+
+    public List<Chunk> getChunks() {
+        return chunks;
+    }
+
+    public void setChunks(List<Chunk> chunks) {
+        this.chunks = chunks;
+    }
+
+    public boolean isValid() {
+        // TODO Auto-generated method stub
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        String format = "ItemVersion[id=%s, itemId=%s, version=%s, chunks=%s, deviceId=%s, modifiedAt=%s, "
+                + "committedAt=%s, checksum=%s, status=%s, "
+                + "size=%s]";
+
+        UUID itemId = null;
+        if (item != null) {
+            itemId = item.getId();
+        }
+
+        Integer chunksSize = null;
+        if (chunks != null) {
+            chunksSize = chunks.size();
+        }
+
+        UUID deviceId = null;
+        if (device != null) {
+            deviceId = device.getId();
+        }
+
+        String result = String.format(format, id, itemId, version, chunksSize, deviceId, modifiedAt,
+                committedAt, checksum, status, size);
+
+        return result;
+    }
 }
