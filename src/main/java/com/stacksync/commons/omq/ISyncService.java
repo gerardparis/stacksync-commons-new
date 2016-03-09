@@ -116,4 +116,10 @@ public interface ISyncService extends Remote {
 	public void createUser(UUID user);
         */
         
+        /***
+	 * Testing pourposes. Function to create random users
+	 */
+	@SyncMethod(retry = 3, timeout = 5000)
+	public UUID[] createRandomUser();
+        
 }
