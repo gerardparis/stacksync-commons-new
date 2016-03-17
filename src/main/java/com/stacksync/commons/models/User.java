@@ -1,73 +1,45 @@
 package com.stacksync.commons.models;
 
 import java.io.Serializable;
-import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
-import javax.persistence.Table;
-import org.hibernate.annotations.GenericGenerator;
+import javax.persistence.ElementCollection;
+import javax.persistence.Embeddable;
+import javax.persistence.FetchType;
+import javax.persistence.Transient;
 import org.hibernate.annotations.Type;
-import org.hibernate.search.annotations.Indexed;
-import org.hibernate.search.annotations.Field;
-import org.hibernate.search.annotations.Analyze;
-import org.hibernate.search.annotations.Store;
-import org.hibernate.search.annotations.Index;
 
-@Entity
-@Table(name = "user1")
-@Indexed
+@Embeddable
 public class User implements Serializable {
 
     private static final long serialVersionUID = -8827608629982195900L;
 
-    @Id
     @Type(type = "uuid-char")
-    @GeneratedValue(generator = "uuid")
-    @GenericGenerator(name = "uuid", strategy = "uuid2")
-    @Column(name = "id", unique = true, nullable = false)
     private UUID id;
 
     @Type(type = "string")
-    @Column(name = "name", nullable = false, length = 100)
     private String name;
 
     @Type(type = "string")
-    @Column(name = "swift_user", nullable = false, unique = true, length = 100)
     private String swiftUser;
-
+    
     @Type(type = "string")
-    @Column(name = "swift_account", nullable = false, length = 100)
     private String swiftAccount;
 
     @Type(type = "string")
-    @Field(index=Index.YES, analyze=Analyze.NO, store=Store.NO)
-    @Column(name = "email", nullable = false, length = 100)
     private String email;
-
+    
     @Type(type = "long")
-    @Column(name = "quota_limit", nullable = false)
     private Long quotaLimit;
 
     @Type(type = "long")
-    @Column(name = "quota_used_real", nullable = false)
     private Long quotaUsedReal;
 
     @Type(type = "long")
-    @Column(name = "quota_used_logical", nullable = false)
     private Long quotaUsedLogical;
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<Device> devices;
-
-    @OneToOne
-    private Workspace userWorkspaces;
 
     public User() {
         this(null);
@@ -86,7 +58,6 @@ public class User implements Serializable {
         this.quotaLimit = quotaLimit;
         this.quotaUsedLogical = quotaUsedLogical;
         this.quotaUsedReal = quotaUsedReal;
-        this.devices = new ArrayList<Device>();
         this.quotaLimit = (quotaLimit == null) ? 0 : quotaLimit;
         this.quotaUsedReal = (quotaUsedReal == null) ? 0 : quotaUsedReal;
         this.quotaUsedLogical = (quotaUsedLogical == null) ? 0 : quotaUsedLogical;
@@ -156,22 +127,6 @@ public class User implements Serializable {
         this.quotaUsedLogical = quotaUsedLogical;
     }
 
-    public List<Device> getDevices() {
-        return devices;
-    }
-
-    public void setDevices(List<Device> devices) {
-        this.devices = devices;
-    }
-
-    public void addDevice(Device device) {
-        this.devices.add(device);
-    }
-
-    public void removeDevice(Device device) {
-        this.devices.remove(device);
-    }
-
     public List<Workspace> getWorkspaces() {
 
         /*List<Workspace> workspaces = new ArrayList<Workspace>();
@@ -180,22 +135,25 @@ public class User implements Serializable {
             workspaces.add(userWorkspace.getWorkspace());
         }
         return workspaces;
-        */
+        
             
         List<Workspace> workspaces = new ArrayList<Workspace>();
         
         workspaces.add(userWorkspaces);
         
         return workspaces;
+        */
+        return null;
     }
     
     
     public Workspace getUserWorkspaces() {
-        return userWorkspaces;
+        //return userWorkspaces;
+        return null;
     }
 
     public void setUserWorkspaces(Workspace userWorkspaces) {
-        this.userWorkspaces = userWorkspaces;
+        //this.userWorkspaces = userWorkspaces;
     }
 
     public void setWorkspaces(List<Workspace> workspaces) {
@@ -203,7 +161,7 @@ public class User implements Serializable {
     }
 
     public void addWorkspace(Workspace workspace) {
-        userWorkspaces = workspace;
+        //userWorkspaces = workspace;
     }
 
     public void removeWorkspace(Workspace workspace) {

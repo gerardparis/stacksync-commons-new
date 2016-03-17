@@ -3,20 +3,21 @@ package com.stacksync.commons.models;
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
-import javax.persistence.CascadeType;
+import javax.persistence.CollectionTable;
 import javax.persistence.Column;
-import javax.persistence.Embeddable;
+import javax.persistence.ElementCollection;
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
-import javax.persistence.PrimaryKeyJoinColumn;
+import javax.persistence.MapKeyColumn;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -25,7 +26,7 @@ import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
 
 @Entity
-@Table(name = "workspace")
+@Table(name = "stacksync")
 public class Workspace implements Serializable {
 
     private static final long serialVersionUID = 243350300638953723L;
@@ -41,9 +42,10 @@ public class Workspace implements Serializable {
     @Column(name = "latest_revision", nullable = false)
     private Integer latestRevision;
 
-    @OneToOne(mappedBy = "userWorkspaces", cascade = CascadeType.ALL)
+    @Embedded
+    @Column(name = "owner", nullable = false)
     private User owner;
-
+    
     @Type(type = "string")
     @Column(name = "swift_container", nullable = false, length = 45)
     private String swiftContainer;
@@ -65,15 +67,25 @@ public class Workspace implements Serializable {
     @Column(name = "created_at", nullable = false)
     private Date createdAt;
     
-    @OneToMany(mappedBy = "workspace",  fetch=FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<Item> items;
+    @ElementCollection(fetch = FetchType.LAZY)
+    private Map<UUID, Device> devices;
+    
+    @ElementCollection(fetch = FetchType.LAZY)
+    private Map<UUID,Item> items;
 
+    @ElementCollection(fetch = FetchType.LAZY)
+    private Map<String,ItemVersion> itemVersions;
+        
+    @ElementCollection(fetch = FetchType.LAZY)
+    private Map<String,Chunk> itemVersionChunks;
+        
     @Type(type = "string")
     private String name;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @Embedded
+    @Column(name = "parent_item", nullable = true)
     private Item parentItem;
-
+        
     public Workspace() {
         this(null);
     }
@@ -88,7 +100,10 @@ public class Workspace implements Serializable {
         this.owner = owner;
         this.isShared = isShared;
         this.isEncrypted = isEncrypted;
-        this.items = new ArrayList<Item>();
+        this.items = new HashMap<UUID,Item>();
+        this.devices = new HashMap<UUID,Device>();
+        this.itemVersions = new HashMap<String,ItemVersion>();
+        this.itemVersionChunks = new HashMap<String,Chunk>();
         this.createdAt = new Timestamp(System.currentTimeMillis());
         this.latestRevision = (latestRevision == null) ? 0 : latestRevision;
     }
@@ -124,6 +139,44 @@ public class Workspace implements Serializable {
     public void setShared(Boolean isShared) {
         this.isShared = isShared;
     }
+    
+    public void addDevice(Device device) {
+        this.devices.put(device.getId(),device);
+    }
+    
+    public Device getDevice(UUID deviceId){
+        return devices.get(deviceId);
+    }
+
+    public void removeDevice(Device device) {
+        this.devices.remove(device.getId());
+    }
+    
+    public ItemVersion getItemVersion(UUID itemId, Long version) {
+        return itemVersions.get(itemId.toString()+version.toString());
+    }
+
+    public void putItemVersion(UUID itemId, ItemVersion itemVersion) {
+        itemVersions.put(itemId.toString()+itemVersion.getVersion().toString(), itemVersion);
+    }
+    
+    public List<Chunk> getVersionChunks(UUID itemId, Long version) {
+        ItemVersion itemVersion = itemVersions.get(itemId.toString()+version.toString());
+        
+        ArrayList<Chunk> chunks = new ArrayList<Chunk>();
+        
+        for(int i=0; i<itemVersion.getChunksNumber(); i++){
+            chunks.add(itemVersionChunks.get(itemId.toString()+version.toString()+i));
+        }
+        return chunks;
+    }
+
+    public void putVersionChunks(UUID itemId, Long version, List<Chunk> chunks) {
+        for(int i=0; i<chunks.size(); i++){
+            itemVersionChunks.put(itemId.toString()+version.toString()+i, chunks.get(i));
+        }
+    }
+    
 
     public boolean isEncrypted() {
         return isEncrypted;
@@ -150,19 +203,19 @@ public class Workspace implements Serializable {
     }
 
     public List<Item> getItems() {
-        return items;
+        return new ArrayList<Item>(items.values());
     }
 
-    public void setItems(List<Item> items) {
+    public void setItems(HashMap<UUID,Item> items) {
         this.items = items;
     }
 
     public void addItem(Item item) {
-        this.items.add(item);
+        this.items.put(item.getId(),item);
     }
 
     public void removeObject(Item object) {
-        this.items.remove(object);
+        this.items.remove(object.getId());
     }
 
     public String getName() {
@@ -182,61 +235,30 @@ public class Workspace implements Serializable {
     }
 
     public List<User> getUsers() {
-        /*
-        List<User> users = new ArrayList<User>();
-
-        for (UserWorkspace userWorkspace : workspaceUsers) {
-            users.add(userWorkspace.getUser());
-        }
-
+        ArrayList<User> users = new ArrayList<User>();
+        users.add(owner);
         return users;
-        */
-        return null;
     }
 
-    public void setUsers(List<User> users) {
-
-        /*
-        UserWorkspace workspaceOwner = null;
-        for (UserWorkspace userWorkspace : workspaceUsers) {
-            if (userWorkspace.getUser().getId().equals(owner.getId())) {
-                workspaceOwner = userWorkspace;
-                break;
-            }
-        }
-
-        for (User user : users) {
-            if (!name.isEmpty()) {
-                workspaceUsers.add(new UserWorkspace(user, this, name, parentItem));
-            } else {
-                addUser(user, workspaceOwner);
-            }
-
-        }
-        */
-        
+    public void setUsers(HashMap<UUID,User> users) {
+        //this.users = users;
     }
 
     public void addUser(User user) {
-
-        /*
-        UserWorkspace workspaceOwner = null;
-        for (UserWorkspace userWorkspace : workspaceUsers) {
-            if (userWorkspace.getUser().getId().equals(owner.getId())) {
-                workspaceOwner = userWorkspace;
-                break;
-            }
-        }
-
-        if (!name.isEmpty()) {
-            workspaceUsers.add(new UserWorkspace(user, this, name, parentItem));
-        } else {
-            addUser(user, workspaceOwner);
-        }
-        */
-
+       //users.put(user.getId(),user);
     }
     
+    public User getUser(UUID userId){
+        if(owner.getId().equals(userId)){
+            return owner;
+        } else {
+            return null;
+        }
+    }
+    
+    public Item getItem(UUID itemId){
+        return items.get(itemId);
+    }
     /*
     public void addUser(User user, UserWorkspace workspaceOwner) {
         if (user == null || !user.isValid()) {
@@ -256,16 +278,7 @@ public class Workspace implements Serializable {
     */
     
     public void removeUser(User user) {
-        /*
-        int i = 0;
-        while (i < workspaceUsers.size()) {
-            if (workspaceUsers.get(i).getUser().getId().equals(user.getId())) {
-                workspaceUsers.remove(i);
-                i = Integer.MAX_VALUE;
-            }
-            i++;
-        }
-        */
+        //users.remove(user.getId());
     }
 
     /**
