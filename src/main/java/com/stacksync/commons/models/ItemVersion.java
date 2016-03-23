@@ -8,19 +8,15 @@ import java.io.Serializable;
 import javax.persistence.AttributeOverride;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
+import javax.persistence.ElementCollection;
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
 import javax.persistence.MapsId;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
 
 @Entity
@@ -73,7 +69,7 @@ public class ItemVersion implements Serializable {
     @Column(name = "size", nullable = false)
     private Long size;
 
-    @OneToMany(mappedBy="itemVersion", cascade = CascadeType.ALL)
+    @ElementCollection
     private List<Chunk> chunks;
 
     public ItemVersion() {
