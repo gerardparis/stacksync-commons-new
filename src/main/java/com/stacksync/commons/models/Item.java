@@ -1,39 +1,24 @@
 package com.stacksync.commons.models;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
-import javax.persistence.ElementCollection;
-import javax.persistence.Embeddable;
-import javax.persistence.FetchType;
-import javax.persistence.Transient;
-import org.hibernate.annotations.Type;
 
-@Embeddable
 public class Item implements Serializable {
 
     private static final long serialVersionUID = 1482457936400001556L;
 
-    @Type(type = "uuid-char")
     private UUID id;
 
-    @Type(type = "long")
     private Long latestVersion;
 
-    @Type(type = "uuid-char")
     private UUID parent;
     
-    @Type(type = "string")
     private String filename;
 
-    @Type(type = "string")
     private String mimetype;
 
-    @Type(type = "true_false")
     private Boolean isFolder;
 
-    @Type(type = "long")
     private Long clientParentFileVersion;
 
     public Item() {

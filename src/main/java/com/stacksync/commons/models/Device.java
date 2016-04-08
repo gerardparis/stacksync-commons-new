@@ -6,36 +6,24 @@ import java.sql.Timestamp;
 import java.util.Date;
 import java.util.UUID;
 import javax.persistence.Embeddable;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
-import org.hibernate.annotations.Type;
 
-@Embeddable
+
 public class Device implements Serializable {
 
     private static final long serialVersionUID = -2932481953197148130L;
 
-    @Type(type = "uuid-char")
     private UUID id;
 
-    @Type(type = "string")
     private String name;
 
-    @Type(type = "string")
     private String os;
 
-    @Type(type = "date")
-    @Temporal(TemporalType.TIMESTAMP)
     private Date createdAt;
 
-    @Type(type = "date")
-    @Temporal(TemporalType.TIMESTAMP)
     private Date lastAccessAt;
 
-    @Type(type = "string")
     private String lastIp;
 
-    @Type(type = "string")
     private String appVersion;
 
     public Device() {

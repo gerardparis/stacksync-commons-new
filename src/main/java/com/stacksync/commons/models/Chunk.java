@@ -1,16 +1,11 @@
 package com.stacksync.commons.models;
 
 import java.io.Serializable;
-import javax.persistence.Embeddable;
-import org.hibernate.annotations.Type;
 
-@Embeddable
 public class Chunk implements Serializable {
     
-    @Type(type = "integer")
     private Integer order = null;
 
-    @Type(type = "string")
     private String clientChunkName = null;
 
     public Chunk() {

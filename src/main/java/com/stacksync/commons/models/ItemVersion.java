@@ -1,44 +1,26 @@
 package com.stacksync.commons.models;
 
 import java.util.Date;
-import java.util.List;
 import java.util.UUID;
 
 import java.io.Serializable;
-import javax.persistence.ElementCollection;
-import javax.persistence.Embeddable;
-import javax.persistence.FetchType;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
-import org.hibernate.annotations.Type;
 
-@Embeddable
 public class ItemVersion implements Serializable {
 
-    @Type(type = "uuid-char")
     private UUID device;
 
-    @Type(type = "long")
     private Long version;
 
-    @Type(type = "date")
-    @Temporal(TemporalType.TIMESTAMP)
     private Date committedAt;
 
-    @Type(type = "date")
-    @Temporal(TemporalType.TIMESTAMP)
     private Date modifiedAt;
-
-    @Type(type = "long")
+    
     private Long checksum;
 
-    @Type(type = "string")
     private String status;
 
-    @Type(type = "long")
     private Long size;
-    
-    @Type(type = "long")
+
     private Long chunksNumber;
 
     public ItemVersion() {

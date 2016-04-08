@@ -1,5 +1,12 @@
 package com.stacksync.commons.models;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutput;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -9,6 +16,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.persistence.CollectionTable;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
@@ -45,7 +54,7 @@ public class Workspace implements Serializable {
     @Embedded
     @Column(name = "owner", nullable = false)
     private User owner;
-    
+
     @Type(type = "string")
     @Column(name = "swift_container", nullable = false, length = 45)
     private String swiftContainer;
@@ -66,26 +75,38 @@ public class Workspace implements Serializable {
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at", nullable = false)
     private Date createdAt;
-    
-    @ElementCollection(fetch = FetchType.LAZY)
-    private Map<UUID, Device> devices;
-    
-    @ElementCollection(fetch = FetchType.LAZY)
-    private Map<UUID,Item> items;
 
-    @ElementCollection(fetch = FetchType.LAZY)
-    private Map<String,ItemVersion> itemVersions;
-        
-    @ElementCollection(fetch = FetchType.LAZY)
-    private Map<String,Chunk> itemVersionChunks;
-        
+    @Transient
+    private Map<UUID, Device> devices;
+
+    @Transient
+    private Map<UUID, Item> items;
+
+    @Transient
+    private Map<String, ItemVersion> itemVersions;
+
+    @Transient
+    private Map<String, Chunk> itemVersionChunks;
+
+    @Column(name = "devices", nullable = true)
+    private byte[] devicesBlob;
+
+    @Column(name = "items", nullable = true)
+    private byte[] itemsBlob;
+
+    @Column(name = "itemsVersion", nullable = true)
+    private byte[] itemVersionsBlob;
+
+    @Column(name = "chunks", nullable = true)
+    private byte[] itemVersionChunksBlob;
+
     @Type(type = "string")
     private String name;
 
     @Embedded
     @Column(name = "parent_item", nullable = true)
     private Item parentItem;
-        
+
     public Workspace() {
         this(null);
     }
@@ -100,10 +121,10 @@ public class Workspace implements Serializable {
         this.owner = owner;
         this.isShared = isShared;
         this.isEncrypted = isEncrypted;
-        this.items = new HashMap<UUID,Item>();
-        this.devices = new HashMap<UUID,Device>();
-        this.itemVersions = new HashMap<String,ItemVersion>();
-        this.itemVersionChunks = new HashMap<String,Chunk>();
+        this.items = new HashMap<UUID, Item>();
+        this.devices = new HashMap<UUID, Device>();
+        this.itemVersions = new HashMap<String, ItemVersion>();
+        this.itemVersionChunks = new HashMap<String, Chunk>();
         this.createdAt = new Timestamp(System.currentTimeMillis());
         this.latestRevision = (latestRevision == null) ? 0 : latestRevision;
     }
@@ -139,44 +160,43 @@ public class Workspace implements Serializable {
     public void setShared(Boolean isShared) {
         this.isShared = isShared;
     }
-    
+
     public void addDevice(Device device) {
-        this.devices.put(device.getId(),device);
+        this.devices.put(device.getId(), device);
     }
-    
-    public Device getDevice(UUID deviceId){
+
+    public Device getDevice(UUID deviceId) {
         return devices.get(deviceId);
     }
 
     public void removeDevice(Device device) {
         this.devices.remove(device.getId());
     }
-    
+
     public ItemVersion getItemVersion(UUID itemId, Long version) {
-        return itemVersions.get(itemId.toString()+version.toString());
+        return itemVersions.get(itemId.toString() + version.toString());
     }
 
     public void putItemVersion(UUID itemId, ItemVersion itemVersion) {
-        itemVersions.put(itemId.toString()+itemVersion.getVersion().toString(), itemVersion);
+        itemVersions.put(itemId.toString() + itemVersion.getVersion().toString(), itemVersion);
     }
-    
+
     public List<Chunk> getVersionChunks(UUID itemId, Long version) {
-        ItemVersion itemVersion = itemVersions.get(itemId.toString()+version.toString());
-        
+        ItemVersion itemVersion = itemVersions.get(itemId.toString() + version.toString());
+
         ArrayList<Chunk> chunks = new ArrayList<Chunk>();
-        
-        for(int i=0; i<itemVersion.getChunksNumber(); i++){
-            chunks.add(itemVersionChunks.get(itemId.toString()+version.toString()+i));
+
+        for (int i = 0; i < itemVersion.getChunksNumber(); i++) {
+            chunks.add(itemVersionChunks.get(itemId.toString() + version.toString() + i));
         }
         return chunks;
     }
 
     public void putVersionChunks(UUID itemId, Long version, List<Chunk> chunks) {
-        for(int i=0; i<chunks.size(); i++){
-            itemVersionChunks.put(itemId.toString()+version.toString()+i, chunks.get(i));
+        for (int i = 0; i < chunks.size(); i++) {
+            itemVersionChunks.put(itemId.toString() + version.toString() + i, chunks.get(i));
         }
     }
-    
 
     public boolean isEncrypted() {
         return isEncrypted;
@@ -206,12 +226,12 @@ public class Workspace implements Serializable {
         return new ArrayList<Item>(items.values());
     }
 
-    public void setItems(HashMap<UUID,Item> items) {
+    public void setItems(HashMap<UUID, Item> items) {
         this.items = items;
     }
 
     public void addItem(Item item) {
-        this.items.put(item.getId(),item);
+        this.items.put(item.getId(), item);
     }
 
     public void removeObject(Item object) {
@@ -240,43 +260,43 @@ public class Workspace implements Serializable {
         return users;
     }
 
-    public void setUsers(HashMap<UUID,User> users) {
+    public void setUsers(HashMap<UUID, User> users) {
         //this.users = users;
     }
 
     public void addUser(User user) {
-       //users.put(user.getId(),user);
+        //users.put(user.getId(),user);
     }
-    
-    public User getUser(UUID userId){
-        if(owner.getId().equals(userId)){
+
+    public User getUser(UUID userId) {
+        if (owner.getId().equals(userId)) {
             return owner;
         } else {
             return null;
         }
     }
-    
-    public Item getItem(UUID itemId){
+
+    public Item getItem(UUID itemId) {
         return items.get(itemId);
     }
     /*
-    public void addUser(User user, UserWorkspace workspaceOwner) {
-        if (user == null || !user.isValid()) {
-            throw new IllegalArgumentException("User not valid");
-        }
-        if (owner == null) {
-            throw new IllegalArgumentException("Workspace not valid");
-        }
-        //FIX ME! not owner.getName, is workspace name
-        workspaceUsers.add(new UserWorkspace(user, this, owner.getName(), parentItem));
-    }
+     public void addUser(User user, UserWorkspace workspaceOwner) {
+     if (user == null || !user.isValid()) {
+     throw new IllegalArgumentException("User not valid");
+     }
+     if (owner == null) {
+     throw new IllegalArgumentException("Workspace not valid");
+     }
+     //FIX ME! not owner.getName, is workspace name
+     workspaceUsers.add(new UserWorkspace(user, this, owner.getName(), parentItem));
+     }
 
-    public List<UserWorkspace> getWorkspaceUsers() {
-        return workspaceUsers;
-    }
+     public List<UserWorkspace> getWorkspaceUsers() {
+     return workspaceUsers;
+     }
 
-    */
-    
+     */
+
     public void removeUser(User user) {
         //users.remove(user.getId());
     }
@@ -296,10 +316,205 @@ public class Workspace implements Serializable {
         }
     }
 
+    public void serializeObject() {
+
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        ObjectOutput out = null;
+        try {
+            out = new ObjectOutputStream(bos);
+            out.writeObject(devices);
+            devicesBlob = bos.toByteArray();
+        } catch (IOException ex) {
+            //
+        } finally {
+            try {
+                if (out != null) {
+                    out.close();
+                }
+            } catch (IOException ex) {
+                // ignore close exception
+            }
+            try {
+                bos.close();
+            } catch (IOException ex) {
+                // ignore close exception
+            }
+        }
+
+        bos = new ByteArrayOutputStream();
+        out = null;
+        try {
+            out = new ObjectOutputStream(bos);
+            out.writeObject(items);
+            itemsBlob = bos.toByteArray();
+        } catch (IOException ex) {
+            //
+        } finally {
+            try {
+                if (out != null) {
+                    out.close();
+                }
+            } catch (IOException ex) {
+                // ignore close exception
+            }
+            try {
+                bos.close();
+            } catch (IOException ex) {
+                // ignore close exception
+            }
+        }
+
+        bos = new ByteArrayOutputStream();
+        out = null;
+        try {
+            out = new ObjectOutputStream(bos);
+            out.writeObject(itemVersions);
+            itemVersionsBlob = bos.toByteArray();
+        } catch (IOException ex) {
+            //
+        } finally {
+            try {
+                if (out != null) {
+                    out.close();
+                }
+            } catch (IOException ex) {
+                // ignore close exception
+            }
+            try {
+                bos.close();
+            } catch (IOException ex) {
+                // ignore close exception
+            }
+        }
+
+        bos = new ByteArrayOutputStream();
+        out = null;
+        try {
+            out = new ObjectOutputStream(bos);
+            out.writeObject(itemVersionChunks);
+            itemVersionChunksBlob = bos.toByteArray();
+        } catch (IOException ex) {
+            //
+        } finally {
+            try {
+                if (out != null) {
+                    out.close();
+                }
+            } catch (IOException ex) {
+                // ignore close exception
+            }
+            try {
+                bos.close();
+            } catch (IOException ex) {
+                // ignore close exception
+            }
+        }
+
+    }
+
+    public void deserializeObject() {
+        
+        ByteArrayInputStream bis = new ByteArrayInputStream(devicesBlob);
+        ObjectInput in = null;
+        try {
+            in = new ObjectInputStream(bis);
+            devices = (Map<UUID, Device>) in.readObject();
+        } catch (IOException ex) {
+            //
+        } catch (ClassNotFoundException ex) {
+            //
+        } finally {
+            try {
+                bis.close();
+            } catch (IOException ex) {
+                // ignore close exception
+            }
+            try {
+                if (in != null) {
+                    in.close();
+                }
+            } catch (IOException ex) {
+                // ignore close exception
+            }
+        }
+        
+        bis = new ByteArrayInputStream(itemsBlob);
+        in = null;
+        try {
+            in = new ObjectInputStream(bis);
+            items = (Map<UUID, Item>) in.readObject();
+        } catch (IOException ex) {
+            //
+        } catch (ClassNotFoundException ex) {
+            //
+        } finally {
+            try {
+                bis.close();
+            } catch (IOException ex) {
+                // ignore close exception
+            }
+            try {
+                if (in != null) {
+                    in.close();
+                }
+            } catch (IOException ex) {
+                // ignore close exception
+            }
+        }
+        
+        bis = new ByteArrayInputStream(itemVersionsBlob);
+        in = null;
+        try {
+            in = new ObjectInputStream(bis);
+            itemVersions = (Map<String, ItemVersion>) in.readObject();
+        } catch (IOException ex) {
+            //
+        } catch (ClassNotFoundException ex) {
+            //
+        } finally {
+            try {
+                bis.close();
+            } catch (IOException ex) {
+                // ignore close exception
+            }
+            try {
+                if (in != null) {
+                    in.close();
+                }
+            } catch (IOException ex) {
+                // ignore close exception
+            }
+        }
+        
+        bis = new ByteArrayInputStream(itemVersionChunksBlob);
+        in = null;
+        try {
+            in = new ObjectInputStream(bis);
+            itemVersionChunks = (Map<String, Chunk>) in.readObject();
+        } catch (IOException ex) {
+            //
+        } catch (ClassNotFoundException ex) {
+            //
+        } finally {
+            try {
+                bis.close();
+            } catch (IOException ex) {
+                // ignore close exception
+            }
+            try {
+                if (in != null) {
+                    in.close();
+                }
+            } catch (IOException ex) {
+                // ignore close exception
+            }
+        }
+    }
+
     @Override
     public String toString() {
         /*return String.format("workspace[id=%s, latestRevision=%s, owner=%s, items=%s, users=%s]", id,
-                latestRevision, owner, items, workspaceUsers);*/
+         latestRevision, owner, items, workspaceUsers);*/
         return String.format("workspace[id=%s, latestRevision=%s, owner=%s, items=%s]", id,
                 latestRevision, owner, items);
     }
