@@ -127,6 +127,12 @@ public class Workspace implements Serializable {
         this.itemVersionChunks = new HashMap<String, Chunk>();
         this.createdAt = new Timestamp(System.currentTimeMillis());
         this.latestRevision = (latestRevision == null) ? 0 : latestRevision;
+        
+        devicesBlob = new byte[0];
+        itemsBlob = new byte[0];
+        itemVersionsBlob = new byte[0];
+        itemVersionChunksBlob = new byte[0];
+    
     }
 
     public UUID getId() {

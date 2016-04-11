@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.stacksync</groupId>
     <artifactId>stacksync-commons</artifactId>
-    <version>1.4.4-ogm-oneobject</version>
+    <version>1.4.4-ogm-oneobject-serialized</version>
     <name>Stacksync Commons New</name>
     <description>Common classes shared between the server and client.</description>
 
